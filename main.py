@@ -891,7 +891,7 @@ async def del_bind_other_permission(msg: Message):
 async def get_help(msg: Message):
     bot_id = (await bot.fetch_me()).id
     if bot_id in msg.extra['mention']:
-        await msg.reply('文档: \nGitHub: https://hank9999.github.io/MatchesBot/\nGitee: https://hank9999.gitee.io/MatchesBot/')
+        await msg.reply('文档: \nGitHub: [https://hank9999.github.io/MatchesBot/](https://hank9999.github.io/MatchesBot/)\nGitee: [https://hank9999.gitee.io/MatchesBot/](https://hank9999.gitee.io/MatchesBot/)')
 
 
 if __name__ == '__main__':
