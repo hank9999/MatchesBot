@@ -3,7 +3,7 @@ import re
 import random
 import string
 import pymongo
-from typing import List
+from typing import List, Dict
 from dataclass import Match
 from khl.command import Lexer
 from khl import Bot, Message, Cert, User
@@ -23,7 +23,6 @@ db = dbclient['hll_match']
 matches = db['matches']
 cards = db['cards']
 msg_ids = db['msg_ids']
-configs = db['config']
 configs = db['config']
 # config json in mongodb config connection
 # {
@@ -93,7 +92,7 @@ async def text_parser(text: str, roles_id_name: dict):
     return Match(match_id, name, role1, role2, match_time, map_name, score, channel_id)
 
 
-async def khl_text_to_data(texts: str) -> list[Match]:
+async def khl_text_to_data(texts: str) -> List[Match]:
     roles_id_name = await get_roles_id_name()
     texts = texts.split('\\-\\--')
     datas = []
@@ -114,14 +113,14 @@ async def match_dict_to_object(match_dict: dict) -> Match:
                  match_dict['channel'])
 
 
-async def match_dicts_to_objects(match_dicts: list[dict]) -> list[Match]:
+async def match_dicts_to_objects(match_dicts: List[Dict]) -> List[Match]:
     data = []
     for match_dict in match_dicts:
         data.append(await match_dict_to_object(match_dict))
     return data
 
 
-async def match_objects_to_dicts(match_objects: list[Match]) -> list[dict]:
+async def match_objects_to_dicts(match_objects: List[Match]) -> List[Dict]:
     data = []
     for match_object in match_objects:
         data.append(match_object.todict())
@@ -132,11 +131,11 @@ async def save_match_object(data: Match):
     matches.insert_one(data.todict())
 
 
-async def save_match_objects(data: list[Match]):
+async def save_match_objects(data: List[Match]):
     matches.insert_many(await match_objects_to_dicts(data))
 
 
-async def match_ids_to_objects(ids: list[str]) -> list[Match]:
+async def match_ids_to_objects(ids: List[str]) -> List[Match]:
     match_dicts = []
     for i in ids:
         match_dict = matches.find_one({'_id': i})
@@ -159,7 +158,7 @@ async def generate_match_kmd_text(data: Match, need_id: bool = False) -> str:
     return text
 
 
-async def generate_match_card_from_match_objects(data: list[Match], preview: bool = False, header: str = '赛事对象预览',
+async def generate_match_card_from_match_objects(data: List[Match], preview: bool = False, header: str = '赛事对象预览',
                                                  logo: str = 'https://img.kaiheila.cn/assets/2020-01/tMONHxmVhk03k03k.png/icon',
                                                  source_card_id: str = '') -> [Card, str]:
     if len(source_card_id) == 0:
