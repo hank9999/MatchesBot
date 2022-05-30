@@ -6,6 +6,7 @@ import pymongo
 from typing import List, Dict
 from dataclass import Match
 from khl.command import Lexer
+from khl.requester import HTTPRequester
 from khl import Bot, Message, Cert, User
 from khl.card import Module, Card, Struct, Element, Types, CardMessage
 
@@ -892,6 +893,23 @@ async def get_help(msg: Message):
     bot_id = (await bot.fetch_me()).id
     if bot_id in msg.extra['mention']:
         await msg.reply('文档: \nGitHub: [https://hank9999.github.io/MatchesBot/](https://hank9999.github.io/MatchesBot/)\nGitee: [https://hank9999.gitee.io/MatchesBot/](https://hank9999.gitee.io/MatchesBot/)')
+
+
+@bot.command(lexer=KeyWord(keyword='.批量删除频道'))
+async def del_channels(msg: Message):
+    if not (await check_edit_permission(msg.ctx.guild.id, msg.author_id)):
+        await msg.reply('您没有权限进行此操作')
+        return
+    channel_ids = msg.content.replace('.批量删除频道', '').replace('(chn)', '').replace('\\(chn\\)', '').strip().split(' ')
+    if len(channel_ids) == 0:
+        await msg.reply('频道列表为空')
+        return
+    for i in channel_ids:
+        try:
+            await msg.gate.request('POST', 'channel/delete', data={'channel_id': i.strip()})
+        except HTTPRequester.APIRequestFailed:
+            pass
+    await msg.reply('频道删除成功')
 
 
 if __name__ == '__main__':
