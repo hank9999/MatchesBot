@@ -888,5 +888,12 @@ async def del_bind_other_permission(msg: Message):
     await msg.reply(f'已删除用户 {user_name} 绑定频道权限')
 
 
+@bot.command(lexer=KeyWord(keyword='.帮助', start_with=False))
+async def get_help(msg: Message):
+    bot_id = (await bot.fetch_me()).id
+    if bot_id in msg.extra['mention']:
+        await msg.reply('文档: \nGitHub: https://hank9999.github.io/MatchesBot/\nGitee: https://hank9999.gitee.io/MatchesBot/')
+
+
 if __name__ == '__main__':
     bot.run()
