@@ -19,6 +19,7 @@ module.exports = {
                 'permissions.md',
                 'channel_creating.md',
                 'unified_sending.md',
+                'usage_process.md',
                 'command_usage.md',
                 'FAQ.md'
             ]
