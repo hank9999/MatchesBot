@@ -1,5 +1,7 @@
 # -*- encoding : utf-8 -*-
 import re
+import copy
+import json
 import random
 import string
 import pymongo
@@ -27,12 +29,13 @@ msg_ids = db['msg_ids']
 configs = db['config']
 # config json in mongodb config connection
 # {
-#     guild:"",
-#     main_channel:"",
-#     channels:[],
-#     parent_id:"",
-#     edit_permission:[],
-#     bind_channel_permission:{}
+#     "guild": "",
+#     "main_channel": "",
+#     "master": "",
+#     "channels": [],
+#     "parent_id": "",
+#     "edit_permission": [],
+#     "bind_channel_permission": {}
 # }
 
 
@@ -310,6 +313,8 @@ async def get_guild_master_id(guild_id: str) -> str:
 
 async def check_edit_permission(guild_id: str, user_id: str) -> bool:
     config = dict(configs.find_one())
+    if user_id == config['master']:
+        return True
     if guild_id != config['guild']:
         return False
     if (await get_guild_master_id(guild_id)) == user_id:
@@ -910,6 +915,43 @@ async def del_channels(msg: Message):
         except HTTPRequester.APIRequestFailed:
             pass
     await msg.reply('频道删除成功')
+
+
+@bot.command(lexer=KeyWord(keyword='.设置主服务器'))
+async def set_main_guild(msg: Message):
+    guild_id = msg.ctx.guild.id
+    if not (await check_edit_permission(guild_id, msg.author_id)):
+        await msg.reply('您没有权限进行此操作')
+        return
+    config = dict(configs.find_one())
+    config_bak = copy.deepcopy(config)
+    config['guild'] = guild_id
+    configs.update_one({'guild': config_bak['guild']}, {'$set': config})
+    await msg.reply('已设置主服务器')
+
+
+@bot.command(lexer=KeyWord(keyword='.赛事卡片更新', start_with=False))
+async def update_match_card(msg: Message):
+    if not (await check_edit_permission(msg.ctx.guild.id, msg.author_id)):
+        await msg.reply('您没有权限进行此操作')
+        return
+    arg = re.sub(r'(?:\(met\)(?:.*)\(met\))?(?:.*)\.赛事卡片更新', '', msg.content, count=0).strip()
+    if 'quote' in msg.extra:
+        msg_id = msg.extra['quote']['rong_id']
+        result = msg_ids.find_one({'_id': msg_id})
+        if result is None:
+            await msg.reply('没有找到消息对应卡片ID')
+            return
+        card_id = result['card_id']
+        card = cards.find_one({'_id': card_id})
+        if card is None:
+            await msg.reply('没有找到该卡片')
+            return
+        msg_id = msg.extra['quote']['rong_id']
+        card, _ = await generate_match_card_from_card_id(card_id)
+        await msg.gate.request('POST', 'message/update', data={'msg_id': msg_id, 'content': json.dumps(CardMessage(card))})
+    else:
+        await msg.reply('没有回复赛事卡片')
 
 
 if __name__ == '__main__':
