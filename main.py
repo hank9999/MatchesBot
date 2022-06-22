@@ -164,7 +164,7 @@ async def generate_match_kmd_text(data: Match, need_id: bool = False) -> str:
 
 async def generate_match_card_from_match_objects(data: List[Match], preview: bool = False, header: str = '赛事对象预览',
                                                  logo: str = 'https://img.kaiheila.cn/assets/2020-01/tMONHxmVhk03k03k.png/icon',
-                                                 source_card_id: str = '') -> [Card, str]:
+                                                 source_card_id: str = '', channel: str = '',) -> [Card, str]:
     if len(source_card_id) == 0:
         card_id = await random_id(12)
     else:
@@ -180,6 +180,8 @@ async def generate_match_card_from_match_objects(data: List[Match], preview: boo
         c.append(Module.Header(header))
     if preview:
         c.append(Module.Section(f'卡片ID： {card_id}'))
+        if channel != 0:
+            c.append(Module.Section(Element.Text(f'频道： (chn){channel}(chn)', type=Types.Text.KMD)))
     c.append(Module.Divider())
     pdata = []
     count = 0
@@ -209,9 +211,27 @@ async def generate_match_card_from_card_id(card_id: str) -> [Card, str]:
     if card_info is None:
         return Card(Module.Section('卡片未找到'), color='#B22222'), ''
     match_objects = await match_ids_to_objects(card_info['matches'])
+    if 'channel' not in card_info:
+        channel = ''
+    else:
+        channel = card_info['channel']
     card, _ = await generate_match_card_from_match_objects(match_objects, card_info['preview'], card_info['header'],
-                                                           card_info['logo'], source_card_id=card_id)
+                                                           card_info['logo'], source_card_id=card_id, channel=channel)
     return card, card_id
+
+
+async def generate_match_card_from_card_id_with_channel(card_id: str) -> [Card, str, str]:
+    card_info = cards.find_one({'_id': card_id})
+    if card_info is None:
+        return Card(Module.Section('卡片未找到'), color='#B22222'), ''
+    match_objects = await match_ids_to_objects(card_info['matches'])
+    if 'channel' not in card_info:
+        channel = ''
+    else:
+        channel = card_info['channel']
+    card, _ = await generate_match_card_from_match_objects(match_objects, card_info['preview'], card_info['header'],
+                                                           card_info['logo'], source_card_id=card_id, channel=channel)
+    return card, card_id, channel
 
 
 async def get_roles_id_name():
@@ -507,7 +527,12 @@ async def list_match_card(msg: Message):
                 f'  - 赛事对象ID: {match_ids}\n' \
                 f'  - 预览: {preview}\n' \
                 f'  - 标题: {header}\n' \
-                f'  - logo: {logo}\n---\n'
+                f'  - logo: {logo}\n'
+        if 'channel' in match_card:
+            channel = match_card['channel']
+            text += f'  - 频道: (chn){channel}(chn)\n---\n'
+        else:
+            text += '---\n'
     c.append(Module.Section(Element.Text(text, type=Types.Text.KMD)))
     await msg.reply(CardMessage(c))
 
@@ -600,7 +625,12 @@ async def modify_match_card(msg: Message):
             await msg.reply('赛事对象不存在于该卡片中')
             return
         card['matches'].remove(context)
-
+    elif command == '设置频道':
+        channel_ids = context.replace('(chn)', '').replace('\\(chn\\)', '').strip().split(' ')
+        if len(channel_ids) != 1:
+            await msg.reply('缺少参数或参数过多')
+            return
+        card['channel'] = channel_ids[0]
     cards.update_one({'_id': card_id}, {'$set': card})
     await msg.reply('修改已保存')
 
@@ -736,9 +766,10 @@ async def card_all_channel_send(msg: Message):
         if card is None:
             await msg.reply('没有找到该卡片')
             return
-    card, card_id = await generate_match_card_from_card_id(card_id)
+    card, card_id, channel = await generate_match_card_from_card_id_with_channel(card_id)
     config = dict(configs.find_one())
-    msg_id = (await (await bot.client.fetch_public_channel(config['main_channel'])).send(CardMessage(card)))['msg_id']
+    channel = channel if channel != '' else config['main_channel']
+    msg_id = (await (await bot.client.fetch_public_channel(channel)).send(CardMessage(card)))['msg_id']
     if len(card_id) != 0:
         card_msg = CardMessage(await generate_all_public_channel_match_card_from_card_id(card_id))
         msg_ids.insert_one({'_id': msg_id, 'card_id': card_id})
