@@ -381,10 +381,12 @@ async def list_match_objects(msg: Message):
     if not (await check_edit_permission(msg.ctx.guild.id, msg.author_id)):
         await msg.reply('您没有权限进行此操作')
         return
+    n = 0
     text = '---\n'
     match_objects = matches.find({})
     c = Card(Module.Header('赛事对象列表'))
     for match_object in match_objects:
+        n += 1
         match_id = match_object['_id']
         match_name = match_object['name']
         match_time = match_object['match_time']
@@ -392,16 +394,20 @@ async def list_match_objects(msg: Message):
         match_map = match_object['map_name']
         match_score = match_object['score']
         channel = match_object['channel']
-        text1 = f'ID: {match_id}\n' \
+        text1 = f'{n}. ID: {match_id}\n' \
                 f'  - 名称: {match_name}\n' \
                 f'  - 角色: (rol){role1}(rol) vs (rol){role2}(rol)\n' \
                 f'  - 时间: {match_time}\n' \
                 f'  - 地图: {match_map}\n' \
                 f'  - 得分 {match_score}\n' \
                 f'  - 频道 (chn){channel}(chn)\n---\n'
-        if len(text + text1) > 20_000:
-            await msg.reply(CardMessage(Card(Module.Header('赛事对象列表'), Module.Section(Element.Text(text, type=Types.Text.KMD)))))
-            text = '---\n'
+        if len(json.dumps(text + text1)) + 42 + 145 > 5000:
+            c.append(Module.Section(Element.Text(text, type=Types.Text.KMD)))
+            text = ''
+        if len(c.__dict__['_modules']) == 5:
+            text = ''
+            await msg.reply(CardMessage(c))
+            c = Card(Module.Header('赛事对象列表'))
         text += text1
     c.append(Module.Section(Element.Text(text, type=Types.Text.KMD)))
     await msg.reply(CardMessage(c))
@@ -510,15 +516,20 @@ async def clean_all_msg_ids(msg: Message):
     await msg.reply(f'{r.deleted_count} 个消息ID已删除')
 
 
+# [{"type": "card", "size": "lg", "modules": [{"type": "header", "text": ""}, {"type": "section", "text": {"type": "kmarkdown"}, "mode": "left"}]}]
+# 145 字符 中文会转成unicode 一个字符 unicode 7 字符 最多 20_000 字符 一个 section 的 content 里最多 5000 字符
+# 赛事卡片列表  42 字符
 @bot.command(lexer=KeyWord(keyword='.赛事卡片列表'))
 async def list_match_card(msg: Message):
     if not (await check_edit_permission(msg.ctx.guild.id, msg.author_id)):
         await msg.reply('您没有权限进行此操作')
         return
+    n = 0
     text = '---\n'
     match_cards = cards.find({})
     c = Card(Module.Header('赛事卡片列表'))
     for match_card in match_cards:
+        n += 1
         card_id = match_card['_id']
         match_ids = ', '.join(match_card['matches'])
         if match_card['preview']:
@@ -527,7 +538,7 @@ async def list_match_card(msg: Message):
             preview = '关'
         header = match_card['header']
         logo = match_card['logo']
-        text1 = f'ID: {card_id}\n' \
+        text1 = f'{n}. ID: {card_id}\n' \
                 f'  - 赛事对象ID: {match_ids}\n' \
                 f'  - 预览: {preview}\n' \
                 f'  - 标题: {header}\n' \
@@ -537,9 +548,13 @@ async def list_match_card(msg: Message):
             text1 += f'  - 频道: (chn){channel}(chn)\n---\n'
         else:
             text1 += '---\n'
-        if len(text + text1) > 20_000:
-            await msg.reply(CardMessage(Card(Module.Header('赛事卡片列表'), Module.Section(Element.Text(text, type=Types.Text.KMD)))))
-            text = '---\n'
+        if len(json.dumps(text + text1)) + 42 + 145 > 5000:
+            c.append(Module.Section(Element.Text(text, type=Types.Text.KMD)))
+            text = ''
+        if len(c.__dict__['_modules']) == 5:
+            text = ''
+            await msg.reply(CardMessage(c))
+            c = Card(Module.Header('赛事卡片列表'))
         text += text1
     c.append(Module.Section(Element.Text(text, type=Types.Text.KMD)))
     await msg.reply(CardMessage(c))
