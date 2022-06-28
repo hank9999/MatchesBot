@@ -392,13 +392,17 @@ async def list_match_objects(msg: Message):
         match_map = match_object['map_name']
         match_score = match_object['score']
         channel = match_object['channel']
-        text += f'ID: {match_id}\n' \
+        text1 = f'ID: {match_id}\n' \
                 f'  - 名称: {match_name}\n' \
                 f'  - 角色: (rol){role1}(rol) vs (rol){role2}(rol)\n' \
                 f'  - 时间: {match_time}\n' \
                 f'  - 地图: {match_map}\n' \
                 f'  - 得分 {match_score}\n' \
                 f'  - 频道 (chn){channel}(chn)\n---\n'
+        if len(text + text1) > 20_000:
+            await msg.reply(CardMessage(Card(Module.Header('赛事对象列表'), Module.Section(Element.Text(text, type=Types.Text.KMD)))))
+            text = '---\n'
+        text += text1
     c.append(Module.Section(Element.Text(text, type=Types.Text.KMD)))
     await msg.reply(CardMessage(c))
 
@@ -523,16 +527,20 @@ async def list_match_card(msg: Message):
             preview = '关'
         header = match_card['header']
         logo = match_card['logo']
-        text += f'ID: {card_id}\n' \
+        text1 = f'ID: {card_id}\n' \
                 f'  - 赛事对象ID: {match_ids}\n' \
                 f'  - 预览: {preview}\n' \
                 f'  - 标题: {header}\n' \
                 f'  - logo: {logo}\n'
         if 'channel' in match_card:
             channel = match_card['channel']
-            text += f'  - 频道: (chn){channel}(chn)\n---\n'
+            text1 += f'  - 频道: (chn){channel}(chn)\n---\n'
         else:
-            text += '---\n'
+            text1 += '---\n'
+        if len(text + text1) > 20_000:
+            await msg.reply(CardMessage(Card(Module.Header('赛事卡片列表'), Module.Section(Element.Text(text, type=Types.Text.KMD)))))
+            text = '---\n'
+        text += text1
     c.append(Module.Section(Element.Text(text, type=Types.Text.KMD)))
     await msg.reply(CardMessage(c))
 
