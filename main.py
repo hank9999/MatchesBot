@@ -598,19 +598,34 @@ async def modify_match_card(msg: Message):
         if len(args) < 1:
             await msg.reply('缺少参数')
             return
-        command = args.pop(0).strip()
+        while True:
+            if len(args) <= 0:
+                await msg.reply('没有找到关键词')
+            command = args.pop(0).strip()
+            if len(command) > 0:
+                break
         context = ' '.join(args).strip()
     else:
         args = args.strip().split(' ')
         if len(args) < 2:
             await msg.reply('缺少参数')
             return
-        card_id = args.pop(0).strip()
+        while True:
+            if len(args) <= 0:
+                await msg.reply('没有找到赛事卡片ID')
+            card_id = args.pop(0).strip()
+            if len(card_id) > 0:
+                break
         card = cards.find_one({'_id': card_id})
         if card is None:
             await msg.reply('没有找到该卡片')
             return
-        command = args.pop(0).strip()
+        while True:
+            if len(args) <= 0:
+                await msg.reply('没有找到关键词')
+            command = args.pop(0).strip()
+            if len(command) > 0:
+                break
         context = ' '.join(args).strip()
 
     card = dict(card)
@@ -668,12 +683,22 @@ async def modify_match_object(msg: Message):
     if len(args) < 2:
         await msg.reply('缺少参数')
         return
-    match_id = args.pop(0).strip()
+    while True:
+        if len(args) <= 0:
+            await msg.reply('没有找到赛事对象ID')
+        match_id = args.pop(0).strip()
+        if len(match_id) > 0:
+            break
     match = matches.find_one({'_id': match_id})
     if match is None:
         await msg.reply('没有找到该赛事')
         return
-    command = args.pop(0).strip()
+    while True:
+        if len(args) <= 0:
+            await msg.reply('没有找到关键词')
+        command = args.pop(0).strip()
+        if len(command) > 0:
+            break
     context = ' '.join(args).strip()
 
     match = dict(match)
