@@ -64,30 +64,31 @@ class KeyWord(Lexer):
         return []
 
 
+async def list_to_str_list(value):
+    return [str(i) for i in value]
+
 async def random_id(num: int) -> str:
     return ''.join(random.sample(string.ascii_letters + string.digits, num))
 
 
 async def text_parser(text: str, roles_id_name: dict):
     try:
-        name = re.findall(r'\\\(name\\\)(.*)\\\(name\\\)', text)[0]
-        role1 = re.findall(r'\\\(role1\\\)(.*)\\\(role1\\\)', text)[0].replace('(rol)', '').replace('\\(rol\\)',
-                                                                                                    '').strip()
-        role2 = re.findall(r'\\\(role2\\\)(.*)\\\(role2\\\)', text)[0].replace('(rol)', '').replace('\\(rol\\)',
-                                                                                                    '').strip()
-        match_time = re.findall(r'\\\(time\\\)(.*)\\\(time\\\)', text)[0]
-        map_name = re.findall(r'\\\(map\\\)(.*)\\\(map\\\)', text)[0]
-        score = re.findall(r'\\\(score\\\)(.*)\\\(score\\\)', text)[0]
+        name = re.findall(r'(?:\\\(name\\\)|\(name\))(.*)(?:\\\(name\\\)|\(name\))', text)[0]
+        role1_r = re.findall(r'(?:\\\(role1\\\)|\(role1\))(.*)(?:\\\(role1\\\)|\(role1\))', text)[0]
+        role2_r = re.findall(r'(?:\\\(role2\\\)|\(role2\))(.*)(?:\\\(role2\\\)|\(role2\))', text)[0]
+        role1 = await list_to_str_list(re.findall(r'(?:\(rol\)|\\\(rol\\\))(\d+)(?:\(rol\)|\\\(rol\\\))', role1_r))
+        role2 = await list_to_str_list(re.findall(r'(?:\(rol\)|\\\(rol\\\))(\d+)(?:\(rol\)|\\\(rol\\\))', role2_r))
+        role1 = ';'.join(role1)
+        role2 = ';'.join(role2)
+        if len(role1) == 0:
+            role1 = role1_r.strip()
+        if len(role2) == 0:
+            role2 = role2_r.strip()
+        match_time = re.findall(r'(?:\\\(time\\\)|\(time\))(.*)(?:\\\(time\\\)|\(time\))', text)[0]
+        map_name = re.findall(r'(?:\\\(map\\\)|\(map\))(.*)(?:\\\(map\\\)|\(map\))', text)[0]
+        score = re.findall(r'(?:\\\(score\\\)|\(score\))(.*)(?:\\\(score\\\)|\(score\))', text)[0]
     except IndexError:
-        try:
-            name = re.findall(r'\(name\)(.*)\(name\)', text)[0]
-            role1 = re.findall(r'\(role1\)(.*)\(role1\)', text)[0].replace('(rol)', '').replace('\\(rol\\)', '').strip()
-            role2 = re.findall(r'\(role2\)(.*)\(role2\)', text)[0].replace('(rol)', '').replace('\\(rol\\)', '').strip()
-            match_time = re.findall(r'\(time\)(.*)\(time\)', text)[0]
-            map_name = re.findall(r'\(map\)(.*)\(map\)', text)[0]
-            score = re.findall(r'\(score\)(.*)\(score\)', text)[0]
-        except IndexError:
-            return None
+        return None
     while True:
         match_id = await random_id(8)
         if len(list(matches.find({'match_id': match_id}))) == 0:
@@ -151,8 +152,10 @@ async def match_ids_to_objects(ids: List[str]) -> List[Match]:
 
 
 async def generate_match_kmd_text(data: Match, need_id: bool = False) -> str:
+    role1 = data.role1 if data.role1.find(";") < 0 else data.role1.replace(";", "(rol) (rol)")
+    role2 = data.role2 if data.role2.find(";") < 0 else data.role2.replace(";", "(rol) (rol)")
     text = f'**{data.name}**\n' \
-           f'(rol){data.role1}(rol) vs (rol){data.role2}(rol)\n' \
+           f'(rol){role1}(rol) vs (rol){role2}(rol)\n' \
            f'> {data.match_time}\n' \
            f'地图: {data.map_name}\n' \
            f'得分: (spl){data.score}(spl)\n\n' \
@@ -246,26 +249,39 @@ async def get_roles_id_name():
 
 async def get_role1_role2_name(role1: str, role2: str):
     roles_id_name = await get_roles_id_name()
-    if role1 in roles_id_name:
-        role1 = roles_id_name[role1]
-    else:
-        role1 = '角色不存在'
-    if role2 in roles_id_name:
-        role2 = roles_id_name[role2]
-    else:
-        role2 = '角色不存在'
+    role1, role2 = await get_role1_role2_name_with_cached_all_id_name(role1, role2, roles_id_name)
     return role1, role2
 
 
 async def get_role1_role2_name_with_cached_all_id_name(role1: str, role2: str, roles_id_name: dict):
-    if role1 in roles_id_name:
-        role1 = roles_id_name[role1]
+    if role1.find(';') >= 0:
+        role1s = role1.split(';')
+        role1s_names = []
+        for i in role1s:
+            if i in roles_id_name:
+                role1s_names.append(roles_id_name[i])
+            else:
+                role1s_names.append('角色不存在')
+        role1 = ';'.join(role1s_names)
     else:
-        role1 = '角色不存在'
-    if role2 in roles_id_name:
-        role2 = roles_id_name[role2]
+        if role1 in roles_id_name:
+            role1 = roles_id_name[role1]
+        else:
+            role1 = '角色不存在'
+    if role2.find(';') >= 0:
+        role2s = role2.split(';')
+        role2s_names = []
+        for i in role2s:
+            if i in roles_id_name:
+                role2s_names.append(roles_id_name[i])
+            else:
+                role2s_names.append('角色不存在')
+        role2 = ';'.join(role2s_names)
     else:
-        role2 = '角色不存在'
+        if role2 in roles_id_name:
+            role2 = roles_id_name[role2]
+        else:
+            role2 = '角色不存在'
     return role1, role2
 
 
@@ -311,7 +327,7 @@ async def generate_all_public_channel_match_card_from_card_id(card_id: str):
         if preview:
             need_id = True
         role1, role2 = await get_role1_role2_name_with_cached_all_id_name(i.role1, i.role2, roles_id_name)
-        text = (await generate_match_kmd_text(i, need_id=need_id)).replace('(rol)', '').replace('(chn)', '')
+        text = (await generate_match_kmd_text(i, need_id=need_id)).replace('(rol) (rol)', ';').replace('(rol)', '').replace('(chn)', '')
         channel_name = await get_channel_name(i.channel)
         text = text.replace(i.role1, role1).replace(i.role2, role2).replace(i.channel, f'#{channel_name}')
         pdata.append(Element.Text(text, type=Types.Text.KMD))
@@ -391,6 +407,8 @@ async def list_match_objects(msg: Message):
         match_name = match_object['name']
         match_time = match_object['match_time']
         role1, role2 = match_object['role1'], match_object['role2']
+        role1 = role1 if role1.find(";") < 0 else role1.replace(";", "(rol) (rol)")
+        role2 = role2 if role2.find(";") < 0 else role2.replace(";", "(rol) (rol)")
         match_map = match_object['map_name']
         match_score = match_object['score']
         channel = match_object['channel']
@@ -628,24 +646,31 @@ async def modify_match_card(msg: Message):
                 break
         context = ' '.join(args).strip()
 
+    log = '未修改'
+
     card = dict(card)
     if command == '预览关':
         card['preview'] = False
+        log = '预览模式已关闭'
     elif command == '预览开':
         card['preview'] = True
+        log = '预览模式已开启'
     elif command == '标题':
         if len(context) == 0:
             await msg.reply('缺少参数')
             return
         card['header'] = context
+        log = f'标题已修改为 {context}'
     elif command == 'logo':
         if len(context) == 0:
-            card['logo'] = context
+            await msg.reply('缺少参数')
+            return
         else:
-            if not context.startswith('https://img.kaiheila.cn'):
-                await msg.reply('请填写开黑啦图片链接')
+            if not context.startswith('https://img.kaiheila.cn') and not context.startswith('https://img.kookapp.cn'):
+                await msg.reply('请填写 KOOK 图片链接')
                 return
             card['logo'] = context
+            log = f'logo 已修改为 {context}'
     elif command == '添加赛事':
         if len(context) == 0:
             await msg.reply('缺少参数')
@@ -655,6 +680,7 @@ async def modify_match_card(msg: Message):
             await msg.reply('赛事对象未找到')
             return
         card['matches'].append(context)
+        log = f'赛事对象 {context} 已添加'
     elif command == '删除赛事':
         if len(context) == 0:
             await msg.reply('缺少参数')
@@ -663,14 +689,16 @@ async def modify_match_card(msg: Message):
             await msg.reply('赛事对象不存在于该卡片中')
             return
         card['matches'].remove(context)
+        log = f'赛事对象 {context} 已删除'
     elif command == '设置频道':
         channel_ids = context.replace('(chn)', '').replace('\\(chn\\)', '').strip().split(' ')
         if len(channel_ids) != 1:
             await msg.reply('缺少参数或参数过多')
             return
         card['channel'] = channel_ids[0]
+        log = f'赛事卡片主频道设置为 {context}'
     cards.update_one({'_id': card_id}, {'$set': card})
-    await msg.reply('修改已保存')
+    await msg.reply(log)
 
 
 @bot.command(lexer=KeyWord(keyword='.赛事对象修改'))
@@ -709,24 +737,36 @@ async def modify_match_object(msg: Message):
     if len(args) < 1:
         await msg.reply('缺少参数')
         return
+    log = '未修改'
     if command == '名称':
         match['name'] = context
+        log = f'赛事对象 名称 修改为 {context}'
     elif command == '角色1':
-        match['role1'] = context.replace('(rol)', '').replace('\\(rol\\)', '')
+        data = await list_to_str_list(re.findall(r'(?:\(rol\)|\\\(rol\\\))(\d+)(?:\(rol\)|\\\(rol\\\))', context))
+        if len(data) == 0:
+            data = context
+        match['role1'] = ';'.join(data)
+        log = f'赛事对象 角色1 修改为 {context}'
     elif command == '角色2':
-        match['role2'] = context.replace('(rol)', '').replace('\\(rol\\)', '')
+        data = await list_to_str_list(re.findall(r'(?:\(rol\)|\\\(rol\\\))(\d+)(?:\(rol\)|\\\(rol\\\))', context))
+        if len(data) == 0:
+            data = context
+        match['role2'] = ';'.join(data)
+        log = f'赛事对象 角色2 修改为 {context}'
     elif command == '时间':
         match['match_time'] = context
+        log = f'赛事对象 时间 修改为 {context}'
     elif command == '地图':
         match['map_name'] = context
+        log = f'赛事对象 地图 修改为 {context}'
     elif command == '得分':
         match['score'] = context
+        log = f'赛事对象 得分 修改为 {context}'
     elif command == '频道':
         match['channel'] = context.replace('(chn)', '').replace('\\(chn\\)', '')
-
+        log = f'赛事对象 频道 修改为 {context}'
     matches.update_one({'_id': match_id}, {'$set': match})
-
-    await msg.reply('修改已保存')
+    await msg.reply(log)
 
 
 @bot.command(lexer=KeyWord(keyword='.设置分组'))
