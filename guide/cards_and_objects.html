@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>赛事卡片和赛事对象 | MatchesBot</title>
+    <meta name="generator" content="VuePress 1.9.7">
+    
+    <meta name="description" content="赛事信息发布从未如此方便">
+    
+    <link rel="preload" href="/MatchesBot/assets/css/0.styles.46429852.css" as="style"><link rel="preload" href="/MatchesBot/assets/js/app.3d3dd6f3.js" as="script"><link rel="preload" href="/MatchesBot/assets/js/2.681d38ab.js" as="script"><link rel="preload" href="/MatchesBot/assets/js/7.7a92642a.js" as="script"><link rel="prefetch" href="/MatchesBot/assets/js/10.48ef7c78.js"><link rel="prefetch" href="/MatchesBot/assets/js/11.8dfba44c.js"><link rel="prefetch" href="/MatchesBot/assets/js/12.18647822.js"><link rel="prefetch" href="/MatchesBot/assets/js/13.5c686c4d.js"><link rel="prefetch" href="/MatchesBot/assets/js/14.54835108.js"><link rel="prefetch" href="/MatchesBot/assets/js/15.add944df.js"><link rel="prefetch" href="/MatchesBot/assets/js/3.504311c9.js"><link rel="prefetch" href="/MatchesBot/assets/js/4.11ec7193.js"><link rel="prefetch" href="/MatchesBot/assets/js/5.08937874.js"><link rel="prefetch" href="/MatchesBot/assets/js/6.00d78632.js"><link rel="prefetch" href="/MatchesBot/assets/js/8.e374aae2.js"><link rel="prefetch" href="/MatchesBot/assets/js/9.346375af.js">
+    <link rel="stylesheet" href="/MatchesBot/assets/css/0.styles.46429852.css">
+  </head>
+  <body>
+    <div id="app" data-server-rendered="true"><div class="theme-container"><header class="navbar"><div class="sidebar-button"><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" role="img" viewBox="0 0 448 512" class="icon"><path fill="currentColor" d="M436 124H12c-6.627 0-12-5.373-12-12V80c0-6.627 5.373-12 12-12h424c6.627 0 12 5.373 12 12v32c0 6.627-5.373 12-12 12zm0 160H12c-6.627 0-12-5.373-12-12v-32c0-6.627 5.373-12 12-12h424c6.627 0 12 5.373 12 12v32c0 6.627-5.373 12-12 12zm0 160H12c-6.627 0-12-5.373-12-12v-32c0-6.627 5.373-12 12-12h424c6.627 0 12 5.373 12 12v32c0 6.627-5.373 12-12 12z"></path></svg></div> <a href="/MatchesBot/" class="home-link router-link-active"><!----> <span class="site-name">MatchesBot</span></a> <div class="links"><div class="search-box"><input aria-label="Search" autocomplete="off" spellcheck="false" value=""> <!----></div> <nav class="nav-links can-hide"><div class="nav-item"><a href="/MatchesBot/" class="nav-link">
+  主页
+</a></div><div class="nav-item"><a href="/MatchesBot/guide/" class="nav-link router-link-active">
+  指南
+</a></div><div class="nav-item"><a href="https://github.com/hank9999/MatchesBot" target="_blank" rel="noopener noreferrer" class="nav-link external">
+  Github
+  <span><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg> <span class="sr-only">(opens new window)</span></span></a></div> <!----></nav></div></header> <div class="sidebar-mask"></div> <aside class="sidebar"><nav class="nav-links"><div class="nav-item"><a href="/MatchesBot/" class="nav-link">
+  主页
+</a></div><div class="nav-item"><a href="/MatchesBot/guide/" class="nav-link router-link-active">
+  指南
+</a></div><div class="nav-item"><a href="https://github.com/hank9999/MatchesBot" target="_blank" rel="noopener noreferrer" class="nav-link external">
+  Github
+  <span><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg> <span class="sr-only">(opens new window)</span></span></a></div> <!----></nav>  <ul class="sidebar-links"><li><section class="sidebar-group depth-0"><p class="sidebar-heading open"><span>指南</span> <!----></p> <ul class="sidebar-links sidebar-group-items"><li><a href="/MatchesBot/guide/" aria-current="page" class="sidebar-link">介绍</a></li><li><a href="/MatchesBot/guide/cards_and_objects.html" aria-current="page" class="active sidebar-link">赛事卡片和赛事对象</a><ul class="sidebar-sub-headers"><li class="sidebar-sub-header"><a href="/MatchesBot/guide/cards_and_objects.html#赛事对象" class="sidebar-link">赛事对象</a></li><li class="sidebar-sub-header"><a href="/MatchesBot/guide/cards_and_objects.html#赛事卡片" class="sidebar-link">赛事卡片</a></li></ul></li><li><a href="/MatchesBot/guide/permissions.html" class="sidebar-link">权限说明</a></li><li><a href="/MatchesBot/guide/channel_creating.html" class="sidebar-link">分组和频道自动创建说明</a></li><li><a href="/MatchesBot/guide/unified_sending.html" class="sidebar-link">统一发送说明</a></li><li><a href="/MatchesBot/guide/usage_process.html" class="sidebar-link">使用流程</a></li><li><a href="/MatchesBot/guide/command_usage.html" class="sidebar-link">指令使用说明</a></li><li><a href="/MatchesBot/guide/FAQ.html" class="sidebar-link">FAQ 常见问题</a></li></ul></section></li></ul> </aside> <main class="page"> <div class="theme-default-content content__default"><h1 id="赛事卡片和赛事对象"><a href="#赛事卡片和赛事对象" class="header-anchor">#</a> 赛事卡片和赛事对象</h1> <div class="custom-block tip"><p class="custom-block-title">TIP</p> <p>本文档中的 <code>赛事卡片</code> 和 <code>赛事对象</code> 概念第一次见可能会有点疑惑，放心在使用中您很快就能理解</p></div> <h2 id="赛事对象"><a href="#赛事对象" class="header-anchor">#</a> 赛事对象</h2> <p>一个赛事对象包含赛事的一系列关键信息，并且拥有一个<strong>唯一ID</strong><br>
+赛事对象包含 <code>ID</code>，<code>名称</code>，<code>角色1</code>，<code>角色2</code>，<code>时间</code>，<code>地图</code>，<code>得分</code>，<code>频道</code> 8个信息<br> <code>ID</code> 由 MatchesBot 自行生成且无法修改<br> <code>频道</code> 也由 MatchesBot 自行创建（用于对战）但可以修改，也可以重新生成<br>
+其余信息皆可自由修改</p> <h3 id="赛事对象模板"><a href="#赛事对象模板" class="header-anchor">#</a> 赛事对象模板</h3> <p>其中at的角色可以用角色ID替代</p> <div class="language-text extra-class"><pre class="language-text"><code>(name)赛事1(name)  
+(role1) @战队1 (role1)  
+(role2) @战队2 (role2)  
+(time)2022.05.30(time)  
+(map)地图1(map)  
+(score)?-?(score)  
+</code></pre></div><h2 id="赛事卡片"><a href="#赛事卡片" class="header-anchor">#</a> 赛事卡片</h2> <p>一个赛事卡片包含卡片的关键信息，并且拥有一个<strong>唯一ID</strong><br>
+赛事卡片包含 <code>ID</code>，<code>赛事对象ID</code>，<code>预览</code>，<code>标题</code>，<code>logo</code> 5个信息<br> <code>ID</code> 由 MatchesBot 自行生成且无法修改<br> <code>赛事对象ID</code> 是一个由一系列赛事对象的ID构成的列表<br> <code>预览</code> 是决定生成的卡片是否为预览模式 （明显的显示赛事卡片ID和赛事对象ID）<br> <code>标题</code> 是生成的卡片的上方文本 有 <code>logo</code> 时支持 <a href="https://developer.kaiheila.cn/doc/kmarkdown" target="_blank" rel="noopener noreferrer">KMarkDown<span><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false" x="0px" y="0px" viewBox="0 0 100 100" width="15" height="15" class="icon outbound"><path fill="currentColor" d="M18.8,85.1h56l0,0c2.2,0,4-1.8,4-4v-32h-8v28h-48v-48h28v-8h-32l0,0c-2.2,0-4,1.8-4,4v56C14.8,83.3,16.6,85.1,18.8,85.1z"></path> <polygon fill="currentColor" points="45.7,48.7 51.3,54.3 77.2,28.5 77.2,37.2 85.2,37.2 85.2,14.9 62.8,14.9 62.8,22.9 71.5,22.9"></polygon></svg> <span class="sr-only">(opens new window)</span></span></a><br> <code>logo</code> 是生成的卡片的上方图片</p> <p><img src="/MatchesBot/assets/img/card_with_preview.838c42fc.png" alt="赛事卡片-预览"> <img src="/MatchesBot/assets/img/card_without_preview.20ee6c09.png" alt="赛事卡片-无预览"></p></div> <footer class="page-edit"><!----> <!----></footer> <div class="page-nav"><p class="inner"><span class="prev">
+      ←
+      <a href="/MatchesBot/guide/" class="prev router-link-active">
+        介绍
+      </a></span> <span class="next"><a href="/MatchesBot/guide/permissions.html">
+        权限说明
+      </a>
+      →
+    </span></p></div> </main></div><div class="global-ui"></div></div>
+    <script src="/MatchesBot/assets/js/app.3d3dd6f3.js" defer></script><script src="/MatchesBot/assets/js/2.681d38ab.js" defer></script><script src="/MatchesBot/assets/js/7.7a92642a.js" defer></script>
+  </body>
+</html>
