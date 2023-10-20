@@ -1,4 +1,5 @@
 # -*- encoding : utf-8 -*-
+import logging
 import re
 import copy
 import json
@@ -7,7 +8,7 @@ import string
 import pymongo
 from typing import List, Dict
 from dataclass import Match
-from khl.command import Lexer
+from khl.command import Lexer, Exceptions
 from khl.requester import HTTPRequester
 from khl import Bot, Message, Cert, User
 from khl.card import Module, Card, Struct, Element, Types, CardMessage
@@ -17,7 +18,9 @@ from khl.card import Module, Card, Struct, Element, Types, CardMessage
 # bot = Bot(cert=cert, port=3000, route='/webhook')
 
 # websocket
-bot = Bot(token='1/MTAxNTc=/foFB2M6hPle+xiw3FKQeGw==')
+bot = Bot(token='')
+
+logging.basicConfig(level='DEBUG')
 
 dbclient = pymongo.MongoClient("mongodb://localhost:27017/")
 db = dbclient['hll_match']
@@ -53,14 +56,14 @@ class KeyWord(Lexer):
         if self.no_space:
             command = msg.content.split('\n')[0].strip()
             if command != self.keyword:
-                raise Lexer.NotMatched(msg)
+                raise Exceptions.Lexer.NotMatched()
         elif self.start_with:
             command = msg.content.split(' ')[0].strip()
             if command != self.keyword:
-                raise Lexer.NotMatched(msg)
+                raise Exceptions.Lexer.NotMatched()
         else:
             if msg.content.find(self.keyword) < 0:
-                raise Lexer.NotMatched(msg)
+                raise Exceptions.Lexer.NotMatched()
         return []
 
 
@@ -168,7 +171,7 @@ async def generate_match_kmd_text(data: Match, need_id: bool = False) -> str:
 
 async def generate_match_card_from_match_objects(data: List[Match], preview: bool = False, header: str = '赛事对象预览',
                                                  logo: str = 'https://img.kaiheila.cn/assets/2020-01/tMONHxmVhk03k03k.png/icon',
-                                                 source_card_id: str = '', channel: str = '', ) -> [Card, str]:
+                                                 source_card_id: str = '', channel: str = '') -> [Card, str]:
     if len(source_card_id) == 0:
         card_id = await random_id(12)
     else:
@@ -178,14 +181,14 @@ async def generate_match_card_from_match_objects(data: List[Match], preview: boo
     if len(logo) != 0:
         c.append(Module.Section(
             accessory=Element.Image(logo, circle=True, alt='left', size=Types.Size.SM),
-            text=Element.Text(f'**{header}**', text_type=Types.Text.KMD)
+            text=Element.Text(f'**{header}**', type=Types.Text.KMD)
         ))
     else:
         c.append(Module.Header(header))
     if preview:
         c.append(Module.Section(f'卡片ID： {card_id}'))
         if channel != 0:
-            c.append(Module.Section(Element.Text(f'频道： (chn){channel}(chn)', text_type=Types.Text.KMD)))
+            c.append(Module.Section(Element.Text(f'频道： (chn){channel}(chn)', type=Types.Text.KMD)))
     c.append(Module.Divider())
     pdata = []
     count = 0
@@ -195,7 +198,7 @@ async def generate_match_card_from_match_objects(data: List[Match], preview: boo
         if preview:
             need_id = True
         match_ids.append(i.id)
-        pdata.append(Element.Text(await generate_match_kmd_text(i, need_id=need_id), text_type=Types.Text.KMD))
+        pdata.append(Element.Text(await generate_match_kmd_text(i, need_id=need_id), type=Types.Text.KMD))
         if count >= 3:
             c.append(Module.Section(Struct.Paragraph(3, *pdata)))
             count = 0
@@ -312,7 +315,7 @@ async def generate_all_public_channel_match_card_from_card_id(card_id: str):
     if len(logo) != 0:
         c.append(Module.Section(
             accessory=Element.Image(logo, circle=True, alt='left', size=Types.Size.SM),
-            text=Element.Text(f'**{header}**', text_type=Types.Text.KMD)
+            text=Element.Text(f'**{header}**', type=Types.Text.KMD)
         ))
     else:
         c.append(Module.Header(header))
@@ -328,12 +331,13 @@ async def generate_all_public_channel_match_card_from_card_id(card_id: str):
         if preview:
             need_id = True
         role1, role2 = await get_role1_role2_name_with_cached_all_id_name(i.role1, i.role2, roles_id_name)
-        text = (await generate_match_kmd_text(i, need_id=need_id)).replace('(rol) (rol)', ';').replace('(rol)',
-                                                                                                       '').replace(
-            '(chn)', '')
+        text = ((await generate_match_kmd_text(i, need_id=need_id))
+                .replace('(rol) (rol)', ';')
+                .replace('(rol)', '')
+                .replace('(chn)', ''))
         channel_name = await get_channel_name(i.channel)
         text = text.replace(i.role1, role1).replace(i.role2, role2).replace(i.channel, f'#{channel_name}')
-        pdata.append(Element.Text(text, text_type=Types.Text.KMD))
+        pdata.append(Element.Text(text, type=Types.Text.KMD))
         if count >= 3:
             c.append(Module.Section(Struct.Paragraph(3, *pdata)))
             count = 0
@@ -423,14 +427,14 @@ async def list_match_objects(msg: Message):
                 f'  - 得分 {match_score}\n' \
                 f'  - 频道 (chn){channel}(chn)\n---\n'
         if len(json.dumps(text + text1)) + 42 + 145 > 5000:
-            c.append(Module.Section(Element.Text(text, text_type=Types.Text.KMD)))
+            c.append(Module.Section(Element.Text(text, type=Types.Text.KMD)))
             text = ''
         if len(c.__dict__['_modules']) == 5:
             text = ''
             await msg.reply(CardMessage(c))
             c = Card(Module.Header('赛事对象列表'))
         text += text1
-    c.append(Module.Section(Element.Text(text, text_type=Types.Text.KMD)))
+    c.append(Module.Section(Element.Text(text, type=Types.Text.KMD)))
     await msg.reply(CardMessage(c))
 
 
@@ -570,14 +574,14 @@ async def list_match_card(msg: Message):
         else:
             text1 += '---\n'
         if len(json.dumps(text + text1)) + 42 + 145 > 5000:
-            c.append(Module.Section(Element.Text(text, text_type=Types.Text.KMD)))
+            c.append(Module.Section(Element.Text(text, type=Types.Text.KMD)))
             text = ''
         if len(c.__dict__['_modules']) == 5:
             text = ''
             await msg.reply(CardMessage(c))
             c = Card(Module.Header('赛事卡片列表'))
         text += text1
-    c.append(Module.Section(Element.Text(text, text_type=Types.Text.KMD)))
+    c.append(Module.Section(Element.Text(text, type=Types.Text.KMD)))
     await msg.reply(CardMessage(c))
 
 
@@ -1019,8 +1023,9 @@ async def del_bind_other_permission(msg: Message):
 async def get_help(msg: Message):
     bot_id = (await bot.client.fetch_me()).id
     if bot_id in msg.extra['mention']:
-        await msg.reply(
-            '文档: \nGitHub: [https://hank9999.github.io/MatchesBot/](https://hank9999.github.io/MatchesBot/)\nGitee: [https://hank9999.gitee.io/MatchesBot/](https://hank9999.gitee.io/MatchesBot/)')
+        await msg.reply('文档: \n'
+                        'GitHub: [https://hank9999.github.io/MatchesBot/](https://hank9999.github.io/MatchesBot/)\n'
+                        'Gitee: [https://hank9999.gitee.io/MatchesBot/](https://hank9999.gitee.io/MatchesBot/)')
 
 
 @bot.command(lexer=KeyWord(keyword='.批量删除频道'))
@@ -1071,8 +1076,11 @@ async def update_match_card(msg: Message):
             return
         msg_id = msg.extra['quote']['rong_id']
         card, _ = await generate_match_card_from_card_id(card_id)
-        await msg.gate.request('POST', 'message/update',
-                               data={'msg_id': msg_id, 'content': json.dumps(CardMessage(card))})
+        await msg.gate.request(
+            'POST',
+            'message/update',
+            data={'msg_id': msg_id, 'content': json.dumps(CardMessage(card))}
+        )
     else:
         await msg.reply('没有回复赛事卡片')
 
